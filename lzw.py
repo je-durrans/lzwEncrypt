@@ -9,8 +9,26 @@ def createDict(passphrase=''):
             dic[character] = len(dic)
     return dic
 
+def getLongestEncodableIndex(message, dic):
+    
+    for index in range(1, len(message)+1):
+        if message[:index] not in dic.keys():
+            return index - 1
+
 def lzwCompress(message, dic):
     ret = []
+    while message:
+        if message in dic:
+            ret.append(dic[message])
+            message = ''
+        else:
+            index = getLongestEncodableIndex(message, dic)
+            fragment = message[:index]
+            newEntry = message[:index+1]
+            message = message[index:]
+            ret.append(dic[fragment])
+            dic[newEntry] = len(dic)
+    print(len(dic))
     return ret
 
 def lzwDecompress(message, dic):
@@ -18,7 +36,7 @@ def lzwDecompress(message, dic):
     return ret
 
 def printf(message, filename):
-    file = open(filename, 'a')
+    file = open(filename, 'w')
     print(message, file=file)
     file.close()
 
@@ -31,6 +49,6 @@ def readf(filename):
 if __name__ == '__main__':
     inputFile, outputFile, passphrase = sys.argv[1:4]
     text = readf(sys.argv[1])
-    printf(text, sys.argv[2])
+    printf(lzwCompress(text, createDict()), sys.argv[2])
     print(inputFile, outputFile, passphrase)
     print(createDict(passphrase))
