@@ -1,3 +1,2 @@
-Validation for command line arguments
 Usage help text
 Write tests

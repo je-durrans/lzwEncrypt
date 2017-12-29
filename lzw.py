@@ -1,6 +1,6 @@
 import sys
 
-ALPHABET = ' abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ.'
+ALPHABET = ' \nabcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ.,[]'
 
 def createDict(passphrase=''):
     dic = {}
@@ -16,7 +16,6 @@ def getLongestEncodableIndex(message, dic):
     
     for index in range(1, len(message)+1):
         if message[:index] not in dic.keys():
-            print('get returning', index - 1)
             return index - 1
 
 def lzwCompress(message, dic):
@@ -26,10 +25,9 @@ def lzwCompress(message, dic):
             ret.append(dic[message])
             message = ''
         else:
-            print('message is', message)
             index = getLongestEncodableIndex(message, dic)
+            if not index: break
             fragment = message[:index]
-            print(index, fragment)
             newEntry = message[:index+1]
             message = message[index:]
             ret.append(dic[fragment])
@@ -58,15 +56,29 @@ def printf(message, filename):
     file.close()
 
 def readf(filename):
-    file = open(filename, 'r')
+    try:
+        file = open(filename, 'r')
+    except FileNotFoundError:
+        print('File not found, exiting')
+        sys.exit()
     ret = file.read()
     file.close()
     return ret.strip()
 
+def usage():
+    print('Usage text')
+
 if __name__ == '__main__':
-    inf, out, pw = sys.argv[1:4]
+    n = len(sys.argv)-1
+    passphrase = ''
+    if not n: usage(), sys.exit() 
+    decode = sys.argv[1]=='-d'
+    if decode:
+        sys.argv.pop(1)
+        n-=1
+    inf, out = sys.argv[1:3]
+    if n == 3: passphrase = sys.argv[3]
+
     text = readf(inf)
-    printf(lzwCompress(text, createDict(pw)), out)
-    printf(lzwDecompress(readf(out), createDict(pw)), inf)
-    print(inf, out, pw)
-    
+    function = lzwDecompress if decode else lzwCompress
+    printf(function(text, createDict(passphrase)), out)
